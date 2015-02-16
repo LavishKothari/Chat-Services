@@ -1,90 +1,50 @@
+package Server;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.LinkedList;
+import java.net.UnknownHostException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.UIManager;
 
 public class ServerFrame extends JFrame implements ActionListener
 {
-	JTextArea logTextArea;
-	JButton startServerButton;
-	static LinkedList<Socket> clientLinkedList;
-	public ServerFrame()
+	JButton startServer;
+	ServerFrame()
 	{
-		clientLinkedList=new LinkedList<Socket>();
-		try
-		{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-		/*
-		 * The following line maximizes this window.
-		 */
 		this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+		startServer=new JButton("Start Server");
+		JPanel parentPanel=new JPanel(new BorderLayout(10,10));
+		parentPanel.add(startServer,BorderLayout.NORTH);
 		
-		this.setLayout(new BorderLayout());
-		JPanel parentPanel=new JPanel();
-		parentPanel.setLayout(new BorderLayout());
-		
-		startServerButton=new JButton("Start the Server");
-		parentPanel.add(startServerButton,BorderLayout.NORTH);
-		this.add(parentPanel,BorderLayout.CENTER);
-		startServerButton.addActionListener(this);
+		startServer.addActionListener(this);
+		this.add(parentPanel);
 	}
-	public void actionPerformed(ActionEvent ae)
+	
+	public void actionPerformed(ActionEvent ae) 
 	{
-		if(ae.getSource()==startServerButton)
+		if(ae.getSource()==startServer)
 		{
-			try
+			Server server=new Server();
+			try 
 			{
-				ServerSocket ss=new ServerSocket(9876);
-				JOptionPane.showMessageDialog(this, "Server Started Successfully");
-				startServerButton.setEnabled(false);
-				while(true)
-				{	
-					Socket client=ss.accept();
-					clientLinkedList.add(client);
-					DataInputStream dis=new DataInputStream(client.getInputStream());
-					DataOutputStream dos=new DataOutputStream(client.getOutputStream());
-					
-					new ServerThread(client,dis,dos);
-				}
-			}
-			catch(Exception e)
+				server.startServer();
+			} catch (Exception e) 
 			{
-			
+				e.printStackTrace();
 			}
-		}
-	}
-	public static void sendToAllClients(String str) throws IOException
-	{
-		for(int i=0;i<clientLinkedList.size();i++)
-		{
-			DataOutputStream dos=new DataOutputStream((clientLinkedList.get(i)).getOutputStream());
-			dos.writeUTF(str);
-			dos.close();
+			JOptionPane.showMessageDialog(this, "Server Started Successfully");
 		}
 	}
 }
 
 class Main
 {
-	public static void main(String []a)
+	public static void main(String args[])
 	{
 		ServerFrame sf=new ServerFrame();
 		sf.setVisible(true);
